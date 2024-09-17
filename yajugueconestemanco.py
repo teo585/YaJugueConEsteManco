@@ -24,8 +24,15 @@ def clasificar_jugadores(jugadores):
     }
     
     clasificaciones = {}
+    clasificaciones_opciones = [f"{numero}: {texto}" for numero, texto in clasificacion_texto.items()]
+    
     for jugador in jugadores:
-        clasificacion_num = st.selectbox(f"Clasifica a {jugador}", ['1', '2', '3'], key=f"clasificacion_{jugador}")
+        clasificacion_opcion = st.selectbox(
+            f"Clasifica a {jugador}", 
+            options=clasificaciones_opciones, 
+            key=f"clasificacion_{jugador}"
+        )
+        clasificacion_num = clasificacion_opcion.split(":")[0].strip()  # Extrae el número de la opción seleccionada
         clasificaciones[jugador] = clasificacion_texto[clasificacion_num]
     
     return clasificaciones
@@ -55,16 +62,6 @@ def agregar_jugadores():
     if not jugadores:
         st.warning("No se encontraron jugadores en el texto ingresado.")
         return
-    
-    # Muestra las opciones de clasificación disponibles
-    clasificacion_texto = {
-        '1': 'malo',
-        '2': 'bueno',
-        '3': 'excelente'
-    }
-    st.write("Opciones de clasificación:")
-    for numero, texto in clasificacion_texto.items():
-        st.write(f"{numero}: {texto}")
     
     # Mostrar opciones de clasificación para cada jugador
     clasificaciones = clasificar_jugadores(jugadores)
