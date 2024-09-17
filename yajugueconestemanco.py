@@ -143,7 +143,7 @@ def consultar_jugadores():
             st.write(f"- {jugador}")
 
 def main():
-    st.title("YA JUGUE CON ESE MANCO")  # Título principal
+    st.title("YA JUGUE CON ESE MANCO BETA")  # Título principal
     st.markdown("---")  # Línea horizontal para separar el título del contenido
     
     opcion = st.selectbox("Selecciona una opción:", ["Agregar jugadores", "Consultar jugadores anteriores", "Salir"])
