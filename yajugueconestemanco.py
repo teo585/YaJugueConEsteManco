@@ -1,23 +1,20 @@
+import streamlit as st
 import json
 import os
 from collections import defaultdict, Counter
 
-# Ruta del archivo JSON para almacenar la lista de jugadores
 json_file = 'jugadores.json'
 
-# Función para cargar datos desde el archivo JSON
 def cargar_datos():
     if os.path.exists(json_file):
         with open(json_file, 'r') as file:
             return json.load(file)
     return {}
 
-# Función para guardar datos en el archivo JSON
 def guardar_datos(datos):
     with open(json_file, 'w') as file:
         json.dump(datos, file, indent=4)
 
-# Función para clasificar jugadores con números
 def clasificar_jugadores(jugadores):
     clasificaciones = {}
     clasificacion_texto = {
@@ -26,69 +23,52 @@ def clasificar_jugadores(jugadores):
         '3': 'excelente'
     }
     
-    print("Clasificaciones:")
-    print("1 - malo")
-    print("2 - bueno")
-    print("3 - excelente")
-    
+    clasificaciones = {}
     for jugador in jugadores:
-        while True:
-            clasificacion_num = input(f"Clasifica a {jugador} (1, 2, 3): ").strip()
-            if clasificacion_num in clasificacion_texto:
-                clasificaciones[jugador] = clasificacion_texto[clasificacion_num]
-                break
-            else:
-                print("Número de clasificación no válido. Por favor, ingresa 1, 2 o 3.")
+        clasificacion_num = st.selectbox(f"Clasifica a {jugador}", ['1', '2', '3'], key=jugador)
+        clasificaciones[jugador] = clasificacion_texto[clasificacion_num]
+    
     return clasificaciones
 
-# Función para agregar jugadores a la lista
 def agregar_jugadores():
     datos = cargar_datos()
     
-    print("Ingresa la lista de jugadores que se han unido a la sala (finaliza con una línea vacía):")
+    st.header("Agregar Jugadores")
     jugadores = []
     while True:
-        entrada = input().strip()
-        if not entrada:
+        jugador = st.text_input("Ingresa el nombre del jugador (deja vacío para terminar):")
+        if not jugador:
             break
-        jugador = entrada.split(' ')[0].strip('⁦⁦').strip('⁩')
-        jugadores.append(jugador)
+        jugadores.append(jugador.strip())
     
-    # Clasificar jugadores
     clasificaciones = clasificar_jugadores(jugadores)
     
-    # Añadir nuevos jugadores y actualizar clasificaciones
-    for jugador in jugadores:
-        if jugador in datos:
-            datos[jugador]['clasificaciones'].append(clasificaciones[jugador])
-        else:
-            datos[jugador] = {
-                "estado": "Nuevo",
-                "clasificaciones": [clasificaciones[jugador]]
-            }
-    
-    guardar_datos(datos)
-    
-    # Mostrar resultados
-    for jugador, info in datos.items():
-        print(f"{jugador}: {info}")
+    if clasificaciones:
+        for jugador in jugadores:
+            if jugador in datos:
+                datos[jugador]['clasificaciones'].append(clasificaciones[jugador])
+            else:
+                datos[jugador] = {
+                    "estado": "Nuevo",
+                    "clasificaciones": [clasificaciones[jugador]]
+                }
+        guardar_datos(datos)
+        st.write("Datos actualizados:")
+        for jugador, info in datos.items():
+            st.write(f"{jugador}: {info}")
 
-# Función para consultar jugadores anteriores
 def consultar_jugadores():
     datos = cargar_datos()
     
-    # Inicializar contadores de clasificación
-    conteo_clasificaciones = defaultdict(Counter)
-    
-    print("Ingresa la lista de jugadores para consultar (finaliza con una línea vacía):")
+    st.header("Consultar Jugadores")
     consulta = []
     while True:
-        entrada = input().strip()
-        if not entrada:
+        jugador = st.text_input("Ingresa el nombre del jugador (deja vacío para terminar):", key=f"consulta_{len(consulta)}")
+        if not jugador:
             break
-        jugador = entrada.split(' ')[0].strip('⁦⁦').strip('⁩')
-        consulta.append(jugador)
+        consulta.append(jugador.strip())
     
+    conteo_clasificaciones = defaultdict(Counter)
     encontrados = []
     no_encontrados = []
     
@@ -101,35 +81,31 @@ def consultar_jugadores():
             no_encontrados.append(jugador)
     
     if encontrados:
-        print("Has jugado anteriormente con los siguientes jugadores:")
+        st.write("Has jugado anteriormente con los siguientes jugadores:")
         for jugador in encontrados:
             conteos = conteo_clasificaciones[jugador]
             conteo_texto = ', '.join(f"{k.capitalize()}: {v}" for k, v in conteos.items())
-            print(f"- {jugador} ({conteo_texto})")
+            st.write(f"- {jugador} ({conteo_texto})")
     else:
-        print("No has jugado anteriormente con ninguno de los jugadores consultados.")
+        st.write("No has jugado anteriormente con ninguno de los jugadores consultados.")
     
     if no_encontrados:
-        print("Estos jugadores no se encontraron en la lista:")
+        st.write("Estos jugadores no se encontraron en la lista:")
         for jugador in no_encontrados:
-            print(f"- {jugador}")
+            st.write(f"- {jugador}")
 
 def main():
-    while True:
-        print("\nOpciones:")
-        print("1. Agregar jugadores")
-        print("2. Consultar jugadores anteriores")
-        print("3. Salir")
-        opcion = input("Selecciona una opción (1, 2 o 3): ").strip()
-        
-        if opcion == '1':
-            agregar_jugadores()
-        elif opcion == '2':
-            consultar_jugadores()
-        elif opcion == '3':
-            break
-        else:
-            print("Opción no válida.")
+    st.title("YA JUGUE CON ESE MANCO")  # Título principal
+    st.markdown("---")  # Línea horizontal para separar el título del contenido
+    
+    opcion = st.selectbox("Selecciona una opción:", ["Agregar jugadores", "Consultar jugadores anteriores", "Salir"])
+    
+    if opcion == 'Agregar jugadores':
+        agregar_jugadores()
+    elif opcion == 'Consultar jugadores anteriores':
+        consultar_jugadores()
+    elif opcion == 'Salir':
+        st.write("Saliendo...")
 
 if __name__ == "__main__":
     main()
