@@ -46,6 +46,8 @@ def agregar_jugadores():
     
     st.header("Agregar Jugadores")
     
+    st.warning("**IMPORTANTE:** Asegúrate de ingresar tu nick exactamente como lo hiciste anteriormente. La búsqueda es sensible a mayúsculas y minúsculas.")
+    
     # Pide el nick del usuario
     nick = st.text_input("Ingresa tu nick:")
     if not nick:
@@ -94,6 +96,8 @@ def consultar_jugadores():
     datos = cargar_datos()
     
     st.header("Consultar Jugadores")
+    
+    st.warning("**IMPORTANTE:** Asegúrate de ingresar tu nick exactamente como lo hiciste anteriormente. La búsqueda es sensible a mayúsculas y minúsculas.")
     
     # Pide el nick del usuario para la consulta
     nick = st.text_input("Ingresa tu nick para la consulta:")
