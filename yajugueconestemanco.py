@@ -1,7 +1,8 @@
 import streamlit as st
 import json
 import os
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter  # Importa Counter aquí
+import re
 
 json_file = 'jugadores.json'
 
@@ -16,7 +17,6 @@ def guardar_datos(datos):
         json.dump(datos, file, indent=4)
 
 def clasificar_jugadores(jugadores):
-    clasificaciones = {}
     clasificacion_texto = {
         '1': 'malo',
         '2': 'bueno',
@@ -25,57 +25,108 @@ def clasificar_jugadores(jugadores):
     
     clasificaciones = {}
     for jugador in jugadores:
-        clasificacion_num = st.selectbox(f"Clasifica a {jugador}", ['1', '2', '3'], key=jugador)
+        clasificacion_num = st.selectbox(f"Clasifica a {jugador}", ['1', '2', '3'], key=f"clasificacion_{jugador}")
         clasificaciones[jugador] = clasificacion_texto[clasificacion_num]
     
     return clasificaciones
+
+def procesar_texto_entrada(texto):
+    jugadores = re.findall(r'⁦⁦(.*?)⁩', texto)
+    return jugadores
 
 def agregar_jugadores():
     datos = cargar_datos()
     
     st.header("Agregar Jugadores")
-    jugadores = []
-    while True:
-        jugador = st.text_input("Ingresa el nombre del jugador (deja vacío para terminar):")
-        if not jugador:
-            break
-        jugadores.append(jugador.strip())
     
+    # Pide el nick del usuario
+    nick = st.text_input("Ingresa tu nick:")
+    if not nick:
+        st.warning("Debes ingresar un nick para continuar.")
+        return
+    
+    # Pide el texto de entrada
+    texto_entrada = st.text_area("Ingresa la lista de jugadores en formato de texto:")
+    if not texto_entrada:
+        st.warning("Debes ingresar el texto de los jugadores para continuar.")
+        return
+    
+    jugadores = procesar_texto_entrada(texto_entrada)
+    if not jugadores:
+        st.warning("No se encontraron jugadores en el texto ingresado.")
+        return
+    
+    # Muestra las opciones de clasificación disponibles
+    clasificacion_texto = {
+        '1': 'malo',
+        '2': 'bueno',
+        '3': 'excelente'
+    }
+    st.write("Opciones de clasificación:")
+    for numero, texto in clasificacion_texto.items():
+        st.write(f"{numero}: {texto}")
+    
+    # Mostrar opciones de clasificación para cada jugador
     clasificaciones = clasificar_jugadores(jugadores)
     
     if clasificaciones:
-        for jugador in jugadores:
-            if jugador in datos:
-                datos[jugador]['clasificaciones'].append(clasificaciones[jugador])
-            else:
-                datos[jugador] = {
-                    "estado": "Nuevo",
-                    "clasificaciones": [clasificaciones[jugador]]
-                }
-        guardar_datos(datos)
-        st.write("Datos actualizados:")
-        for jugador, info in datos.items():
-            st.write(f"{jugador}: {info}")
+        # Inicializar datos para el nick si no existe
+        if nick not in datos:
+            datos[nick] = {"jugadores": {}}
+        
+        # Asegurarse de que la clave 'jugadores' esté presente
+        if 'jugadores' not in datos[nick]:
+            datos[nick]['jugadores'] = {}
+        
+        if st.button("Guardar Clasificaciones"):
+            for jugador in jugadores:
+                if jugador not in datos[nick]['jugadores']:
+                    datos[nick]['jugadores'][jugador] = {
+                        "estado": "Nuevo",
+                        "clasificaciones": []
+                    }
+                datos[nick]['jugadores'][jugador]['clasificaciones'].append(clasificaciones[jugador])
+            
+            guardar_datos(datos)
+            st.success("Datos actualizados y guardados exitosamente.")
+            st.write("Datos actualizados:")
+            for jugador, info in datos[nick]['jugadores'].items():
+                st.write(f"{jugador}: {info}")
 
 def consultar_jugadores():
     datos = cargar_datos()
     
     st.header("Consultar Jugadores")
-    consulta = []
-    while True:
-        jugador = st.text_input("Ingresa el nombre del jugador (deja vacío para terminar):", key=f"consulta_{len(consulta)}")
-        if not jugador:
-            break
-        consulta.append(jugador.strip())
     
-    conteo_clasificaciones = defaultdict(Counter)
+    # Pide el nick del usuario para la consulta
+    nick = st.text_input("Ingresa tu nick para la consulta:")
+    if not nick:
+        st.warning("Debes ingresar tu nick para continuar.")
+        return
+    
+    if nick not in datos:
+        st.write("No se encontraron datos para el nick ingresado.")
+        return
+    
+    # Pide el texto de entrada
+    texto_entrada = st.text_area("Ingresa la lista de jugadores para consultar:")
+    if not texto_entrada:
+        st.warning("Debes ingresar el texto de los jugadores para consultar.")
+        return
+    
+    consulta = procesar_texto_entrada(texto_entrada)
+    if not consulta:
+        st.warning("No se encontraron jugadores en el texto ingresado.")
+        return
+    
+    conteo_clasificaciones = defaultdict(Counter)  # Esto ahora funcionará correctamente
     encontrados = []
     no_encontrados = []
     
     for jugador in consulta:
-        if jugador in datos:
+        if jugador in datos[nick]['jugadores']:
             encontrados.append(jugador)
-            clasificaciones = datos[jugador]['clasificaciones']
+            clasificaciones = datos[nick]['jugadores'][jugador]['clasificaciones']
             conteo_clasificaciones[jugador] = Counter(clasificaciones)
         else:
             no_encontrados.append(jugador)
