@@ -20,7 +20,9 @@ def clasificar_jugadores(jugadores):
     clasificacion_texto = {
         '1': 'malo',
         '2': 'bueno',
-        '3': 'excelente'
+        '3': 'excelente',
+        '4': 'troll',
+        '5': 'afk'
     }
     
     clasificaciones = {}
@@ -46,7 +48,7 @@ def agregar_jugadores():
     
     st.header("Agregar Jugadores")
     
-    st.warning("**IMPORTANTE:** Asegúrate de ingresar tu nick exactamente como lo hiciste anteriormente. La búsqueda es sensible a mayúsculas y minúsculas.")
+    st.warning("**IMPORTANTE:**  Asegúrate de ingresar tu nick exactamente. La búsqueda es sensible a mayúsculas y minúsculas.")
     
     # Pide el nick del usuario
     nick = st.text_input("Ingresa tu nick:")
@@ -88,16 +90,17 @@ def agregar_jugadores():
             
             guardar_datos(datos)
             st.success("Datos actualizados y guardados exitosamente.")
-            st.write("Datos actualizados:")
-            for jugador, info in datos[nick]['jugadores'].items():
-                st.write(f"{jugador}: {info}")
+            #st.write("Datos actualizados:")
+            
+            #for jugador, info in datos[nick]['jugadores'].items():
+             #   st.write(f"{jugador}: {info}")
 
 def consultar_jugadores():
     datos = cargar_datos()
     
     st.header("Consultar Jugadores")
     
-    st.warning("**IMPORTANTE:** Asegúrate de ingresar tu nick exactamente como lo hiciste anteriormente. La búsqueda es sensible a mayúsculas y minúsculas.")
+    st.warning("**IMPORTANTE:** Asegúrate de ingresar tu nick exactamente. La búsqueda es sensible a mayúsculas y minúsculas.")
     
     # Pide el nick del usuario para la consulta
     nick = st.text_input("Ingresa tu nick para la consulta:")
